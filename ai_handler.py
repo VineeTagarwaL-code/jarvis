@@ -7,7 +7,7 @@ from conversation_manager import ConversationManager
 
 class AIHandler:
     def __init__(self):
-        self.client = openai.OpenAI(api_key=OPENAI_API_KEY,base_url="https://generativelanguage.googleapis.com/v1beta/openai/")
+        self.client = openai.OpenAI(api_key=OPENAI_API_KEY)
         self.conversation_manager = ConversationManager()
     
     def process_query(self, query):
