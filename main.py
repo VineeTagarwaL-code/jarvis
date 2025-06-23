@@ -5,11 +5,12 @@ A modular voice assistant with speech recognition, AI processing, and function c
 """
 
 from jarvis import Jarvis
-
+from speak import speak
 def main():
     """Main entry point for the Jarvis application."""
     try:
         # Create and start Jarvis
+        speak("Hello, how can I help you today?, My name is Jarvis and I am your personal assistant, I am here to help you with your tasks and questions")
         jarvis = Jarvis()
         jarvis.start()
     except KeyboardInterrupt:

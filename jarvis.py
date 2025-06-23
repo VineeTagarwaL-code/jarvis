@@ -1,7 +1,7 @@
 from speech_handler import SpeechHandler
 from ai_handler import AIHandler
 from config import OPENAI_API_KEY, PERPLEXITY_API_KEY
-
+from speak import speak
 class Jarvis:
     def __init__(self):
         self.speech_handler = SpeechHandler()
@@ -23,7 +23,7 @@ class Jarvis:
     def stop(self):
         """Stop Jarvis."""
         self.is_running = False
-        self.speech_handler.speak("Shutting down Jarvis. Goodbye!")
+        speak("Shutting down Jarvis. Goodbye!")
         print("Jarvis has been shut down.")
     
     def _main_loop(self):
@@ -44,14 +44,14 @@ class Jarvis:
             if text.lower() == "clear history":
                 response = self.ai_handler.clear_conversation_history()
                 print(f"Jarvis: {response}")
-                self.speech_handler.speak(response)
+                speak(response)
                 continue
             
             if text.lower() == "conversation stats":
                 stats = self.ai_handler.get_conversation_stats()
                 response = f"Conversation stats: {stats['total_interactions']} interactions, {stats['total_tool_calls']} tool calls, average {stats['average_tools_per_interaction']:.1f} tools per interaction."
                 print(f"Jarvis: {response}")
-                self.speech_handler.speak(response)
+                speak(response)
                 continue
             
             # Process query if it contains "jarvis"
@@ -62,9 +62,9 @@ class Jarvis:
                     
                     # Speak the response
                     print(f"Jarvis: {response}")
-                    self.speech_handler.speak(response)
+                    speak(response)
             else:
-                self.speech_handler.speak("Yes, sir? How can I help you?")
+                speak("Yes, sir? How can I help you?")
     
     def process_text_command(self, text):
         """Process a text command (useful for testing or alternative input methods)."""

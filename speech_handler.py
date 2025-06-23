@@ -45,11 +45,6 @@ class SpeechHandler:
                 print(f"Could not request results from Google Speech Recognition service; {e}")
                 return None
     
-    def speak(self, text):
-        """Convert text to speech."""
-        self.engine.say(text)
-        self.engine.runAndWait()
-    
     def stop_speaking(self):
         """Stop current speech output."""
         self.engine.stop() 

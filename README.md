@@ -22,7 +22,7 @@ jarvis/
 ## 🚀 Features
 
 - **Voice Recognition**: Real-time speech-to-text using Google Speech Recognition
-- **Text-to-Speech**: Natural voice output using pyttsx3
+- **Text-to-Speech**: Natural voice output using edge-tts
 - **AI Processing**: OpenAI GPT-4 integration with function calling
 - **Web Search**: Real-time information using Perplexity API
 - **Modular Design**: Clean separation of concerns for easy maintenance
