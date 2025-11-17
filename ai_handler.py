@@ -258,8 +258,6 @@ class AIHandler:
                     return FUNCTION_MAP[fn_name](arguments["expression"])
                 elif fn_name == "get_system_stats":
                     return FUNCTION_MAP[fn_name]()
-                elif fn_name == "open_application":
-                    return FUNCTION_MAP[fn_name](arguments["app_name"])
                 elif fn_name == "take_screenshot":
                     filename = arguments.get("filename")
                     return FUNCTION_MAP[fn_name](filename)
@@ -287,6 +285,28 @@ class AIHandler:
                     return FUNCTION_MAP[fn_name](arguments["text"])
                 elif fn_name == "get_web_data":
                     return FUNCTION_MAP[fn_name](arguments["query"])
+                elif fn_name == "open_system_settings":
+                    return FUNCTION_MAP[fn_name](arguments["setting_type"])
+                elif fn_name == "change_font_size":
+                    action = arguments.get("action", "increase")
+                    target_percentage = arguments.get("target_percentage")
+                    return FUNCTION_MAP[fn_name](action, target_percentage)
+                elif fn_name == "list_voices":
+                    return FUNCTION_MAP[fn_name]()
+                elif fn_name == "set_voice":
+                    voice_index = arguments.get("voice_index")
+                    voice_name = arguments.get("voice_name")
+                    return FUNCTION_MAP[fn_name](voice_index=voice_index, voice_name=voice_name)
+                elif fn_name == "list_chrome_profiles":
+                    return FUNCTION_MAP[fn_name]()
+                elif fn_name == "open_chrome_with_profile":
+                    profile_name = arguments.get("profile_name")
+                    profile_id = arguments.get("profile_id")
+                    return FUNCTION_MAP[fn_name](profile_name=profile_name, profile_id=profile_id)
+                elif fn_name == "open_application":
+                    app_name = arguments.get("app_name")
+                    profile_name = arguments.get("profile_name")
+                    return FUNCTION_MAP[fn_name](app_name, profile_name=profile_name)
                 else:
                     return "Sorry, I don't know how to execute that function."
                     

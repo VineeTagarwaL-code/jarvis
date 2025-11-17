@@ -82,9 +82,20 @@ def get_system_stats():
     except Exception as e:
         return f"Sorry, I couldn't retrieve system stats: {str(e)}"
 
-def open_application(app_name):
-    """Open an application by name."""
+def open_application(app_name, profile_name=None):
+    """Open an application by name. For Chrome, optionally specify a profile name."""
+    # If it's Chrome and a profile is specified, use the Chrome-specific function
+    if "chrome" in app_name.lower() and profile_name:
+        return desktop_agent.open_chrome_with_profile(profile_name=profile_name)
     return desktop_agent.open_application(app_name)
+
+def list_chrome_profiles():
+    """List all available Chrome profiles."""
+    return desktop_agent.list_chrome_profiles()
+
+def open_chrome_with_profile(profile_name=None, profile_id=None):
+    """Open Chrome with a specific profile."""
+    return desktop_agent.open_chrome_with_profile(profile_name=profile_name, profile_id=profile_id)
 
 def take_screenshot(filename=None):
     """Take a screenshot of the entire screen."""
@@ -129,6 +140,73 @@ def get_running_apps():
 def copy_to_clipboard(text):
     """Copy text to clipboard."""
     return desktop_agent.copy_to_clipboard(text)
+
+def open_system_settings(setting_type="general"):
+    """
+    Open Windows system settings to a specific page.
+    
+    Args:
+        setting_type: Type of settings (e.g., "display", "text size", "font size", "accessibility", "sound", "network", "privacy", "updates")
+    """
+    return desktop_agent.open_system_settings(setting_type)
+
+def change_font_size(action="increase", target_percentage=None):
+    """
+    Change system font/text size on Windows.
+    Opens text size settings and attempts to adjust the slider.
+    
+    Args:
+        action: "increase" to make text larger, "decrease" to make it smaller, "set" to set specific percentage, or "open" to just open the settings page
+        target_percentage: Target percentage (100-225). Use with action="set" or when user specifies a percentage like "200%"
+    """
+    return desktop_agent.change_font_size(action, target_percentage)
+
+# Global reference to the current speech handler (set by Jarvis)
+_current_speech_handler = None
+
+def _get_speech_handler():
+    """Get the current speech handler instance."""
+    global _current_speech_handler
+    if _current_speech_handler is None:
+        from speech_handler import SpeechHandler
+        _current_speech_handler = SpeechHandler()
+    return _current_speech_handler
+
+def list_voices():
+    """List all available TTS voices."""
+    handler = _get_speech_handler()
+    voices = handler.list_available_voices()
+    if not voices:
+        return "No voices available."
+    
+    result = "Available voices:\n"
+    for voice in voices:
+        result += f"  [{voice['index']}] {voice['name']}\n"
+    return result
+
+def set_voice(voice_index=None, voice_name=None):
+    """
+    Set the TTS voice by index or name.
+    
+    Args:
+        voice_index: Index of the voice (use list_voices to see available indices)
+        voice_name: Name of the voice (partial match is supported)
+    """
+    handler = _get_speech_handler()
+    
+    if voice_name:
+        # Find voice by name (partial match)
+        voices = handler.list_available_voices()
+        for voice in voices:
+            if voice_name.lower() in voice['name'].lower():
+                success, message = handler.set_voice(voice_id=voice['id'])
+                return message
+        return f"Voice not found: {voice_name}. Use list_voices to see available voices."
+    elif voice_index is not None:
+        success, message = handler.set_voice(voice_index=voice_index)
+        return message
+    else:
+        return "Please provide either voice_index or voice_name. Use list_voices to see available voices."
 
 def get_web_data(query):
     """Fetch real-time web data about a topic or question using Perplexity API."""
@@ -209,13 +287,31 @@ FUNCTIONS = [
     },
     {
         "name": "open_application",
-        "description": "Open an application by name (e.g., chrome, safari, terminal, calculator, spotify, mail, messages, photos, music, notes, calendar, reminders, maps, weather, clock, settings).",
+        "description": "Open a desktop application by name. Supports many common apps including: cursor, whatsapp, terminal, calculator, chrome, edge, firefox, spotify, discord, vscode, code, word, excel, powerpoint, outlook, teams, zoom, slack, steam, obs, photoshop, notepad, cmd, powershell, explorer. For Chrome, you can optionally specify a profile_name to open with a specific profile.",
         "parameters": {
             "type": "object",
             "properties": {
-                "app_name": {"type": "string", "description": "The name of the application to open"}
+                "app_name": {"type": "string", "description": "The name of the application to open (e.g., 'cursor', 'whatsapp', 'terminal', 'calculator', 'chrome')"},
+                "profile_name": {"type": "string", "description": "Optional. For Chrome, specify a profile name to open with (e.g., 'Work', 'Personal', 'Default')"}
             },
             "required": ["app_name"]
+        }
+    },
+    {
+        "name": "list_chrome_profiles",
+        "description": "List all available Chrome browser profiles. Use this when user asks to see Chrome profiles or wants to select a profile.",
+        "parameters": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "open_chrome_with_profile",
+        "description": "Open Google Chrome browser with a specific profile. Use when user asks to open Chrome with a profile or switch Chrome profiles.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "profile_name": {"type": "string", "description": "Name of the Chrome profile to use (e.g., 'Work', 'Personal', 'Default')"},
+                "profile_id": {"type": "string", "description": "Chrome profile ID (use list_chrome_profiles to see IDs)"}
+            },
+            "required": []
         }
     },
     {
@@ -321,6 +417,46 @@ FUNCTIONS = [
             },
             "required": ["query"]
         }
+    },
+    {
+        "name": "open_system_settings",
+        "description": "Open Windows system settings to a specific page. Use this for accessing display settings, accessibility, sound, network, privacy, or update settings.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "setting_type": {"type": "string", "description": "Type of settings to open: 'display', 'text size', 'font size', 'accessibility', 'sound', 'network', 'privacy', 'updates', or 'general'"}
+            },
+            "required": ["setting_type"]
+        }
+    },
+    {
+        "name": "change_font_size",
+        "description": "Change system font/text size on Windows. Opens text size settings and adjusts the slider. Use when user asks to increase, decrease, or set font size to a specific percentage (100-225%). If user specifies a percentage like '200%' or 'to 200%', use action='set' and provide target_percentage. The slider range is 100% to 225%.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "action": {"type": "string", "description": "Action to perform: 'increase' to make text larger, 'decrease' to make it smaller, 'set' to set to a specific percentage, or 'open' to just open the settings page", "enum": ["increase", "decrease", "set", "open"]},
+                "target_percentage": {"type": "number", "description": "Target percentage (100-225). Required when action is 'set' or when user specifies a percentage like '200%'"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "list_voices",
+        "description": "List all available TTS (text-to-speech) voices. Use when user asks to see available voices or wants to change the voice.",
+        "parameters": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "set_voice",
+        "description": "Change the TTS voice used by Jarvis. Use when user asks to change voice, switch voice, or use a different voice. Use list_voices first to see available voices.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "voice_index": {"type": "integer", "description": "Index of the voice (from list_voices output)"},
+                "voice_name": {"type": "string", "description": "Name of the voice (partial match supported, e.g., 'zira', 'david', 'microsoft')"}
+            },
+            "required": []
+        }
     }
 ]
 
@@ -342,5 +478,11 @@ FUNCTION_MAP = {
     "minimize_window": minimize_window,
     "get_running_apps": get_running_apps,
     "copy_to_clipboard": copy_to_clipboard,
-    "get_web_data": get_web_data
+    "get_web_data": get_web_data,
+    "open_system_settings": open_system_settings,
+    "change_font_size": change_font_size,
+    "list_voices": list_voices,
+    "set_voice": set_voice,
+    "list_chrome_profiles": list_chrome_profiles,
+    "open_chrome_with_profile": open_chrome_with_profile
 } 

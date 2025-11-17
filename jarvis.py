@@ -1,10 +1,19 @@
 from speech_handler import SpeechHandler
 from ai_handler import AIHandler
 from config import OPENAI_API_KEY, PERPLEXITY_API_KEY
+import tools
 
 class Jarvis:
-    def __init__(self):
-        self.speech_handler = SpeechHandler()
+    def __init__(self, mic_device_index=None):
+        """
+        Initialize Jarvis with optional microphone device selection.
+        
+        Args:
+            mic_device_index: Index of the microphone device to use. If None, uses default.
+        """
+        self.speech_handler = SpeechHandler(mic_device_index=mic_device_index)
+        # Set the global speech handler reference so voice functions can access it
+        tools._current_speech_handler = self.speech_handler
         self.ai_handler = AIHandler()
         self.is_running = False
     
